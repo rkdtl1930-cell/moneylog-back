@@ -1,11 +1,13 @@
 package com.kbs.backend.service;
 
+import com.kbs.backend.domain.Budget;
 import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Transaction;
 import com.kbs.backend.domain.TransactionType;
 import com.kbs.backend.dto.PageRequestDTO;
 import com.kbs.backend.dto.PageResponseDTO;
 import com.kbs.backend.dto.TransactionDTO;
+import com.kbs.backend.repository.BudgetRepository;
 import com.kbs.backend.repository.MemberRepository;
 import com.kbs.backend.repository.TransactionRepository;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +29,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
-    private MemberRepository memberRepository;
+    private BudgetRepository budgetRepository;
 
     @Override
     public Long register(TransactionDTO transactionDTO, Member member) {
@@ -122,4 +124,32 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.sumByMonth(mid);
     }
 
+    @Transactional
+    public void migrateUsedAmountFromExistingTransactions(){
+        List<Budget> allBudgets= budgetRepository.findAll();
+        for(Budget b : allBudgets){
+            b.setUsedAmount(0);
+        }
+        budgetRepository.saveAll(allBudgets);
+        List<Transaction> allTransactions= transactionRepository.findAll();
+        for(Transaction t : allTransactions){
+            if(t.getType() != TransactionType.EXPENSE){
+                continue;
+            }
+            int year = t.getDate().getYear();
+            int month = t.getDate().getMonthValue();
+            Budget budget = budgetRepository.findByMember_IdAndYearAndMonth(t.getMember().getId(),year,month)
+                    .orElseGet(()->{
+                        Budget b = new Budget();
+                        b.setMember(t.getMember());
+                        b.setYear(year);
+                        b.setMonth(month);
+                        b.setLimitAmount(0);
+                        b.setUsedAmount(0);
+                        return budgetRepository.save(b);
+                    });
+            budget.addUsedAmount(t.getAmount());
+            budgetRepository.save(budget);
+        }
+    }
 }

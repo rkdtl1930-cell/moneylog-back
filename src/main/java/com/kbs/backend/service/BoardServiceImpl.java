@@ -10,8 +10,13 @@ import com.kbs.backend.repository.MemberRepository;
 import com.kbs.backend.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BoardServiceImpl implements  BoardService {
@@ -49,11 +54,17 @@ public class BoardServiceImpl implements  BoardService {
 
     @Override
     public void deleteBoard(Long id) {
-
+        boardRepository.deleteById(id);
     }
 
     @Override
     public PageResponseDTO<BoardDTO> getBoards(PageRequestDTO pageRequestDTO) {
-        return null;
+        Pageable pageable = pageRequestDTO.getPageable("id");
+        Page<BoardDTO> result = boardRepository.searchAll(pageRequestDTO.getTypes(), pageRequestDTO.getKeyword(), pageable);
+        return PageResponseDTO.<BoardDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(result.getContent())
+                .total((int)result.getTotalElements())
+                .build();
     }
 }

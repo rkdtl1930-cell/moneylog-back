@@ -32,7 +32,7 @@ public interface BoardService {
                 .createTime(board.getCreateTime())
                 .updateTime(board.getUpdateTime())
                 .mid(board.getMember().getId())
-                .username(board.getMember().getUsername())
+                .writer(board.getMember().getUsername())
                 .build();
         return boardDTO;
     }

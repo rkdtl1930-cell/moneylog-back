@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardDTO {
+public class BudgetDTO {
     private Long id;
-    private String title;
-    private String content;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
-    private String writer;
     private Long mid;
+    private int month;
+    private int year;
+    private int limitAmount;
+    private int usedAmount;
+    private LocalDateTime createTime;
 }

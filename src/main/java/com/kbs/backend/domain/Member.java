@@ -40,4 +40,7 @@ public class Member {
     @Builder.Default
     private List<Transaction> transactions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member",  fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Budget> budgets = new ArrayList<>();
 }

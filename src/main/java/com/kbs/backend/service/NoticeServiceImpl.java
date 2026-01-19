@@ -61,14 +61,10 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public PageResponseDTO<NoticeDTO> getNotices(PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("id");
-        Page<Notice> result = noticeRepository.findAll(pageable);
-        List<NoticeDTO> dtoList = result.getContent()
-                .stream()
-                .map(this::entityToDto)
-                .collect(Collectors.toList());
+        Page<NoticeDTO> result = noticeRepository.searchAll(pageRequestDTO.getTypes(), pageRequestDTO.getKeyword(), pageable);
         return PageResponseDTO.<NoticeDTO>withAll()
                 .pageRequestDTO(pageRequestDTO)
-                .dtoList(dtoList)
+                .dtoList(result.getContent())
                 .total((int)result.getTotalElements())
                 .build();
     }
