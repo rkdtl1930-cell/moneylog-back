@@ -31,5 +31,6 @@ public interface ReplyService {
                 .mid(reply.getMember().getId())
                 .writer(reply.getMember().getUsername())
                 .build();
+        return replyDTO;
     }
 }

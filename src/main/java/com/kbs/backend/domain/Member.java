@@ -50,7 +50,7 @@ public class Member {
     @Builder.Default
     private List<Reply> replies = new ArrayList<>();
 
-    @OneToMany(mappedBy="board", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy="member", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Board> boards = new ArrayList<>();
 }
