@@ -12,12 +12,15 @@ public interface MemberService {
   void deleteMember(Long id);
   void changePassword(String username, String newPassword);
   boolean checkPassword(String username, String rawPassword);
+  void changeInteresting(String username, String interesting);
+
   default Member dtoToEntity(MemberDTO memberDTO) {
       return Member.builder()
               .username(memberDTO.getUsername())
               .password(memberDTO.getPassword())
               .name(memberDTO.getName())
               .role(memberDTO.getRole())
+              .interesting(memberDTO.getInteresting())
               .build();
   }
   default MemberDTO entityToDto(Member member) {
@@ -27,6 +30,7 @@ public interface MemberService {
               .username(member.getUsername())
               .name(member.getName())
               .role(member.getRole())
+              .interesting(member.getInteresting())
               .build();
   }
 }

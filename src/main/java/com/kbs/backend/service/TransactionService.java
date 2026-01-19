@@ -22,6 +22,7 @@ public interface TransactionService {
     PageResponseDTO<TransactionDTO> getListByPeriod(PageRequestDTO pageRequestDTO, Long mid, LocalDate start, LocalDate end);
     List<Map<String, Object>> getCategoryStats(Long mid);
     List<Map<String, Object>> getMonthlyStats(Long mid);
+    PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date);
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
         Transaction transaction = Transaction.builder()

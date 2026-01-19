@@ -63,4 +63,11 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findByUsername(username);
         return passwordEncoder.matches(rawPassword, member.getPassword());
     }
+
+    @Override
+    public void changeInteresting(String username, String interesting) {
+        Member member = memberRepository.findByUsername(username);
+        member.setInteresting(interesting);
+        memberRepository.save(member);
+    }
 }

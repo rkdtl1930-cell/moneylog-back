@@ -54,4 +54,12 @@ public class MemberController {
         boolean matches = memberService.checkPassword(principal.getUsername(),password);
         return ResponseEntity.ok(matches);
     }
+
+    // 회원 수정에서 관심분야 변경
+    @PostMapping("/change-interesting")
+    public ResponseEntity<String> changeInteresting(@AuthenticationPrincipal UserPrincipal principal, @RequestBody Map<String, String> request) {
+        String interesting = request.get("interesting");
+        memberService.changeInteresting(principal.getUsername(), interesting);
+        return ResponseEntity.ok("Interesting changed successfully");
+    }
 }

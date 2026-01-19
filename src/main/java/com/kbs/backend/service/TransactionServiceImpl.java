@@ -124,6 +124,22 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.sumByMonth(mid);
     }
 
+    @Override
+    public PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date) {
+        Pageable pageable = pageRequestDTO.getPageable("date");
+        Page<Transaction> result =
+                transactionRepository.findByMember_IdAndDate(mid, date, pageable);
+        List<TransactionDTO> dtoList = result.getContent()
+                .stream()
+                .map(this::entityToDto)
+                .collect(Collectors.toList());
+        return PageResponseDTO.<TransactionDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int) result.getTotalElements())
+                .build();
+    }
+
     @Transactional
     public void migrateUsedAmountFromExistingTransactions(){
         List<Budget> allBudgets= budgetRepository.findAll();

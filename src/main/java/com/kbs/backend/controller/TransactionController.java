@@ -108,4 +108,14 @@ public class TransactionController {
         Long mid = user.getId();
         return ResponseEntity.ok(transactionService.getMonthlyStats(mid));
     }
+
+    //특정 한 하루의 내역만 보게 하는 서비스
+    @GetMapping("/member/{mid}/day")
+    public ResponseEntity<PageResponseDTO<TransactionDTO>> getBySingleDay(
+            @PathVariable Long mid,
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            PageRequestDTO pageRequestDTO) {
+        return ResponseEntity.ok(transactionService.getListBySingleDay(pageRequestDTO, mid, date));
+    }
 }
