@@ -45,4 +45,12 @@ public class Member {
     @OneToMany(mappedBy = "member",  fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Budget> budgets = new ArrayList<>();
+
+    @OneToMany(mappedBy="member", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Reply> replies = new ArrayList<>();
+
+    @OneToMany(mappedBy="board", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Board> boards = new ArrayList<>();
 }

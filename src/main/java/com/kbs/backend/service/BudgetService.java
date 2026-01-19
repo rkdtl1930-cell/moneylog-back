@@ -15,6 +15,7 @@ public interface BudgetService {
     void resetMonthlyBudgets(List<Member> members, int defaultLimit);
     PageResponseDTO<BudgetDTO> getBudgets(PageRequestDTO pageRequestDTO, Long mid);
     void createBudget(BudgetDTO budgetDTO);
+    void adjustLimit(Long mid, int delta);
 
     default Budget dtoToEntity(BudgetDTO budgetDTO) {
         Budget budget = Budget.builder()

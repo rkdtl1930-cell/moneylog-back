@@ -134,4 +134,17 @@ public class BudgetServiceImpl implements BudgetService {
         budget.setMember(member);
         budgetRepository.save(budget);
     }
+
+    @Override
+    @Transactional
+    public void adjustLimit(Long mid, int delta) {
+        LocalDate now =  LocalDate.now();
+        int year = now.getYear();
+        int month = now.getMonthValue();
+
+        Budget budget = budgetRepository.findByMember_IdAndYearAndMonth(mid, year, month)
+                .orElseThrow(() -> new IllegalStateException("이번 달 예산이 존재하지 않습니다."));
+        budget.changeLimitAmount(delta);
+        budgetRepository.save(budget);
+    }
 }

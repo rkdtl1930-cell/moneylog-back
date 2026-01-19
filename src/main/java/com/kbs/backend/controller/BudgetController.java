@@ -43,4 +43,11 @@ public class BudgetController {
         budgetService.createBudget(budgetDTO);
         return ResponseEntity.ok("Budget created");
     }
+
+    // 예산 증감 서비스
+    @PatchMapping("/limit/{mid}")
+    public ResponseEntity<Void> adjustLimit(@PathVariable Long mid, @RequestParam int delta) {
+        budgetService.adjustLimit(mid, delta);
+        return ResponseEntity.ok().build();
+    }
 }

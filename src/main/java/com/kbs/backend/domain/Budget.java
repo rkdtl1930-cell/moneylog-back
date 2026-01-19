@@ -41,4 +41,13 @@ public class Budget {
     public void minusUsedAmount(int amount){
         this.usedAmount -= amount;
     }
+    public void changeLimitAmount(int delta) {
+        int newLimit = this.limitAmount + delta;
+
+        if (newLimit < 0) {
+            throw new IllegalStateException("예산은 0보다 작을 수 없습니다.");
+        }
+
+        this.limitAmount = newLimit;
+    }
 }

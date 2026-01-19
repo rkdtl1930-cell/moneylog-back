@@ -5,20 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardDTO {
+public class ReplyDTO {
     private Long id;
-    private String title;
-    private String content;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
-    private String writer;
+    private Long bno;
     private Long mid;
-    private List<FileDTO> files;
+    private String content;
+    private boolean deleted;
+    private String writer;
 }

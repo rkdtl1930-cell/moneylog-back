@@ -50,6 +50,7 @@ dependencies {
             "jakarta.annotation:jakarta.annotation-api",
             "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     )
+    implementation("net.coobird:thumbnailator:0.4.20")
 }
 
 tasks.named('test') {
