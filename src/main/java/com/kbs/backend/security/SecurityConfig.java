@@ -39,17 +39,11 @@ public class SecurityConfig {
                 .sessionManagement((session)->session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth->auth
-<<<<<<< HEAD
+                        // Swagger(OpenAPI) 허용
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 //                        .requestMatchers("/api/notices/list/**").permitAll()
 //                        .requestMatchers("/api/authentication/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-=======
-                        // Swagger(OpenAPI) 허용
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/notices/list/**").permitAll()
-                        .requestMatchers("/api/authentication/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
->>>>>>> lys
                 )
                 .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
