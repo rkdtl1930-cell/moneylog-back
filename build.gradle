@@ -51,10 +51,6 @@ dependencies {
             "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     )
     implementation("net.coobird:thumbnailator:0.4.20")
-<<<<<<< HEAD
-=======
-
->>>>>>> moneylog-back/kbs
     // OpenAPI 문서(/v3/api-docs)와 Swagger UI(/swagger-ui/index.html)를 자동 생성하기 위한 의존성 추가
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
 }
