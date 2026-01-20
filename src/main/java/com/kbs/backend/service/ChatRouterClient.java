@@ -16,23 +16,21 @@ public class ChatRouterClient {
     @Value("${chat.router.base-url}")
     private String baseUrl;
 
-    public String ask(String message) {
+    public String ask(String message, String authHeader) {
         String url = baseUrl + "/chat";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Router 레포 기준 요청 스키마: { "message": "..." }
-        Map<String, Object> body = Map.of("message", message);
+        // Router로 Authorization 전달 (그대로 전달)
+        if (authHeader != null && !authHeader.isBlank()) {
+            headers.set("Authorization", authHeader);
+        }
 
+        Map<String, Object> body = Map.of("message", message);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> res = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                entity,
-                Map.class
-        );
+        ResponseEntity<Map> res = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
 
         if (!res.getStatusCode().is2xxSuccessful() || res.getBody() == null) {
             throw new IllegalStateException("Chat router returned non-2xx or empty body");

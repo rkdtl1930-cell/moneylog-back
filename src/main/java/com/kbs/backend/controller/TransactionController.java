@@ -118,4 +118,30 @@ public class TransactionController {
             PageRequestDTO pageRequestDTO) {
         return ResponseEntity.ok(transactionService.getListBySingleDay(pageRequestDTO, mid, date));
     }
+
+    //최근 내역 조회(chat-router)
+    @GetMapping("/recent")
+    public ResponseEntity<List<TransactionDTO>> recent(
+            @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        // 안전 상한(툴 limit 최대 50)
+        int safeLimit = Math.min(Math.max(limit, 1), 50);
+
+        // 기존 getList(PageRequestDTO, mid)를 재사용 (size 최소 10 제약이 있어서 우회)
+        PageRequestDTO pr = PageRequestDTO.builder()
+                .page(1)
+                .size(Math.max(10, safeLimit))
+                .build();
+
+        PageResponseDTO<TransactionDTO> page = transactionService.getList(pr, user.getId());
+
+        // 정확히 limit 개수만 반환
+        List<TransactionDTO> sliced = page.getDtoList()
+                .stream()
+                .limit(safeLimit)
+                .toList();
+
+        return ResponseEntity.ok(sliced);
+    }
 }
