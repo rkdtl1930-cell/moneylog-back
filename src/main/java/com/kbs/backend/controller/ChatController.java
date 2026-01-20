@@ -2,11 +2,15 @@ package com.kbs.backend.controller;
 
 import com.kbs.backend.security.UserPrincipal;
 import com.kbs.backend.service.ChatRouterClient;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResourceAccessException;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,17 +20,24 @@ public class ChatController {
     private final ChatRouterClient chatRouterClient;
 
     @PostMapping("/chat")
-    public ResponseEntity<ChatResponse> chat(
+    public ResponseEntity<?> chat(
             @RequestBody ChatRequest req,
-            @AuthenticationPrincipal UserPrincipal principal
-    ) {
-        // SecurityContext에서 userId 확보
-        Long userId = (principal != null) ? principal.getId() : null;
-
-        // 현재 Router 스키마는 message만 받으므로 message만 전달
-        String reply = chatRouterClient.ask(req.getMessage());
-
-        return ResponseEntity.ok(new ChatResponse(reply));
+            @AuthenticationPrincipal UserPrincipal principal,
+            HttpServletRequest httpReq){
+        try {
+            Long userId = (principal != null) ? principal.getId() : null;
+            // 프론트가 보낸 JWT를 그대로 꺼낸다.
+            String authHeader = httpReq.getHeader("Authorization"); // "Bearer eyJ..."
+            // Router 호출 시 함께 전달한다.
+            String reply = chatRouterClient.ask(req.getMessage(), authHeader);
+            return ResponseEntity.ok(new ChatResponse(reply));
+        } catch (ResourceAccessException e) {
+            // Router 타임아웃/연결 실패
+            return ResponseEntity.status(504).body(Map.of(
+                    "error", "CHAT_ROUTER_TIMEOUT",
+                    "message", "챗봇 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요."
+            ));
+        }
     }
 
     @Data
