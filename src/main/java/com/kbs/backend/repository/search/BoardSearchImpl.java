@@ -34,7 +34,7 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
                         builder.or(board.content.contains(keyword));
                         break;
                     case "w":
-                        builder.or(member.username.contains(keyword));
+                        builder.or(member.nickname.contains(keyword));
                         break;
                 }
             }
@@ -49,7 +49,7 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
                         board.content,
                         board.createTime,
                         board.updateTime,
-                        board.member.username.as("writer")
+                        board.member.nickname.as("nickname")
                 )
         );
         this.getQuerydsl().applyPagination(pageable, dtoQuery);

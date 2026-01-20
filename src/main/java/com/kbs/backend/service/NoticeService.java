@@ -20,6 +20,7 @@ public interface NoticeService {
                 .id(noticeDTO.getId())
                 .title(noticeDTO.getTitle())
                 .content(noticeDTO.getContent())
+                .imageUrl(noticeDTO.getImageUrl())
                 .build();
         return notice;
     }
@@ -31,7 +32,8 @@ public interface NoticeService {
                 .content(notice.getContent())
                 .createTime(notice.getCreateTime())
                 .mid(notice.getMember().getId())
-                .username(notice.getMember().getUsername())
+                .nickname(notice.getMember().getNickname())
+                .imageUrl(notice.getImageUrl())
                 .build();
         return noticeDTO;
     }

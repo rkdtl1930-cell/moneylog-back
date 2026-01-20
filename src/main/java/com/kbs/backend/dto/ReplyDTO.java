@@ -15,5 +15,5 @@ public class ReplyDTO {
     private Long mid;
     private String content;
     private boolean deleted;
-    private String writer;
+    private String nickname;
 }

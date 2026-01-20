@@ -17,6 +17,7 @@ public class MemberDTO {
     private String username;
     private String password;
     private String name;
+    private String nickname;
     private Role role;
     private String token;
     private String interesting;

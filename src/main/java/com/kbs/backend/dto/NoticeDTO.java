@@ -16,6 +16,7 @@ public class NoticeDTO {
     private String title;
     private String content;
     private LocalDateTime createTime;
-    private String username;
+    private String nickname;
     private Long mid;
+    private String imageUrl;
 }

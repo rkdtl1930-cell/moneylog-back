@@ -18,7 +18,9 @@ public class BoardDTO {
     private String content;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    private String writer;
+    private String nickname;
     private Long mid;
-    private List<FileDTO> files;
+    private int readcount;
+    private String imageUrl;
+//    private List<FileDTO> files;
 }

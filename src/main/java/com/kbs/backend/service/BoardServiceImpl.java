@@ -27,11 +27,15 @@ public class BoardServiceImpl implements  BoardService {
 
     @Override
     public Long registerBoard(BoardDTO boardDTO) {
-        Board board = dtoToEntity(boardDTO);
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long mid = userPrincipal.getId();
         Member member = memberRepository.findById(mid).orElse(null);
-        board.setMember(member);
+        Board board = Board.builder()
+                .title(boardDTO.getTitle())
+                .content(boardDTO.getContent())
+                .imageUrl(boardDTO.getImageUrl())
+                .member(member)
+                .build();
         Board saved = boardRepository.save(board);
         return saved.getId();
     }
@@ -39,6 +43,8 @@ public class BoardServiceImpl implements  BoardService {
     @Override
     public BoardDTO findBoard(Long id) {
         Board board = boardRepository.findById(id).orElse(null);
+        board.updateReadCount();
+        boardRepository.save(board);
         return entityToDto(board);
     }
 

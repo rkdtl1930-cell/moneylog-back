@@ -35,10 +35,12 @@ public class Board {
     @JoinColumn(name = "mid", nullable = false)
     private Member member;
     private int readcount;
+    @Column(length = 500)
+    private String imageUrl;
 
-    @OneToMany(mappedBy="board", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @Builder.Default
-    private List<File> files = new ArrayList<>();
+//    @OneToMany(mappedBy="board", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+//    @Builder.Default
+//    private List<File> files = new ArrayList<>();
 
     @OneToMany(mappedBy="board", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default

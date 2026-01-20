@@ -2,6 +2,7 @@
 package com.kbs.backend.service;
 
 import com.kbs.backend.domain.Board;
+import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Notice;
 import com.kbs.backend.dto.BoardDTO;
 import com.kbs.backend.dto.NoticeDTO;
@@ -20,6 +21,8 @@ public interface BoardService {
                 .id(boardDTO.getId())
                 .title(boardDTO.getTitle())
                 .content(boardDTO.getContent())
+                .readcount(boardDTO.getReadcount())
+                .imageUrl(boardDTO.getImageUrl())
                 .build();
         return board;
     }
@@ -32,7 +35,9 @@ public interface BoardService {
                 .createTime(board.getCreateTime())
                 .updateTime(board.getUpdateTime())
                 .mid(board.getMember().getId())
-                .writer(board.getMember().getUsername())
+                .nickname(board.getMember().getNickname())
+                .readcount(board.getReadcount())
+                .imageUrl(board.getImageUrl())
                 .build();
         return boardDTO;
     }

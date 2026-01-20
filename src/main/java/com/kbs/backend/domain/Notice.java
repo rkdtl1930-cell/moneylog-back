@@ -28,4 +28,6 @@ public class Notice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mid", nullable = false)
     private Member member;
+    @Column(length = 500)
+    private String imageUrl;
 }

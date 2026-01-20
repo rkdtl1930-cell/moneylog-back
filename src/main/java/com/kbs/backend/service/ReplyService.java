@@ -1,5 +1,7 @@
 package com.kbs.backend.service;
 
+import com.kbs.backend.domain.Board;
+import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Reply;
 import com.kbs.backend.dto.PageRequestDTO;
 import com.kbs.backend.dto.PageResponseDTO;
@@ -14,10 +16,12 @@ public interface ReplyService {
     void remove(Long id);
 
     default Reply dtoTOEntity(ReplyDTO replyDTO) {
+        Board board = Board.builder().id(replyDTO.getBno()).build();
         Reply reply = Reply.builder()
                 .id(replyDTO.getId())
                 .content(replyDTO.getContent())
                 .deleted(replyDTO.isDeleted())
+                .board(board)
                 .build();
         return reply;
     }
@@ -29,7 +33,7 @@ public interface ReplyService {
                 .deleted(reply.isDeleted())
                 .bno(reply.getBoard().getId())
                 .mid(reply.getMember().getId())
-                .writer(reply.getMember().getUsername())
+                .nickname(reply.getMember().getNickname())
                 .build();
         return replyDTO;
     }

@@ -30,13 +30,13 @@ public class ReplyServiceImpl implements ReplyService {
 
     @Override
     public Long register(ReplyDTO replyDTO) {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long mid = userPrincipal.getId();
+        Member member = memberRepository.findById(mid).orElse(null);
         Reply reply = dtoTOEntity(replyDTO);
-        Board board = boardRepository.findById(reply.getBoard().getId()).orElse(null);
-        Member member = memberRepository.findById(reply.getMember().getId()).orElse(null);
-        reply.setBoard(board);
         reply.setMember(member);
-        Long id =  replyRepository.save(reply).getId();
-        return id;
+        Reply saved = replyRepository.save(reply);
+        return saved.getId();
     }
 
     @Override

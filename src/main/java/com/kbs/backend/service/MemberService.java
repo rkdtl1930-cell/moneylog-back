@@ -21,6 +21,7 @@ public interface MemberService {
               .name(memberDTO.getName())
               .role(memberDTO.getRole())
               .interesting(memberDTO.getInteresting())
+              .nickname(memberDTO.getNickname())
               .build();
   }
   default MemberDTO entityToDto(Member member) {
@@ -31,6 +32,7 @@ public interface MemberService {
               .name(member.getName())
               .role(member.getRole())
               .interesting(member.getInteresting())
+              .nickname(member.getNickname())
               .build();
   }
 }
