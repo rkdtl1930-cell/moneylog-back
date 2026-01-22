@@ -133,13 +133,15 @@ public class TransactionController {
 
         return ResponseEntity.ok(list);
     }
-
+    
+    // 원래는 통계용으로 쓸려고 했으나 안 쓰게 됨
     @GetMapping("/category")
     public ResponseEntity<List<Map<String,Object>>> categoryStats(@AuthenticationPrincipal UserPrincipal user){
         Long mid = user.getId();
         return ResponseEntity.ok(transactionService.getCategoryStats(mid));
     }
 
+    // 위와 동일
     @GetMapping("/monthly")
     public ResponseEntity<List<Map<String,Object>>> monthlyStats(@AuthenticationPrincipal UserPrincipal user){
         Long mid = user.getId();
