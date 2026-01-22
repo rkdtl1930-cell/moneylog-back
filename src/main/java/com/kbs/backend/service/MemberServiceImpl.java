@@ -39,6 +39,15 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public MemberDTO findMemberByUsername(String username) {
+        Member member = memberRepository.findByUsername(username);
+        if(member == null) {
+            return null;
+        }
+        return entityToDto(member);
+    }
+
+    @Override
     public PageResponseDTO<MemberDTO> getMembers(PageRequestDTO pageRequestDTO) {
         Pageable pageable =pageRequestDTO.getPageable("id");
         Page<Member> result = memberRepository.findAll(pageable);

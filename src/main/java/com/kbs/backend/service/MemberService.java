@@ -9,6 +9,7 @@ import com.kbs.backend.dto.PageResponseDTO;
 
 public interface MemberService {
   MemberDTO registerMember(MemberDTO memberDTO);
+  MemberDTO findMemberByUsername(String username);
   PageResponseDTO<MemberDTO> getMembers(PageRequestDTO pageRequestDTO);
   void changeRole(Role newRole, String username);
   void deleteMember(Long id);
