@@ -11,7 +11,8 @@ import com.kbs.backend.dto.PageResponseDTO;
 
 public interface BoardService {
     Long registerBoard(BoardDTO boardDTO);
-    BoardDTO findBoard(Long id);
+    BoardDTO findBoard(Long id);    // readcount 증가 포함(기존)
+    BoardDTO get(Long id);          // readcount 증가 없이 단순 조회 - 삭제 소유권 체크용(new)
     void updateBoard(BoardDTO boardDTO);
     void deleteBoard(Long id);
     PageResponseDTO<BoardDTO> getBoards(PageRequestDTO pageRequestDTO);

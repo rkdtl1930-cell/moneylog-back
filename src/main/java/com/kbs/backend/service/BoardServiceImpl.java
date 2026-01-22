@@ -49,6 +49,14 @@ public class BoardServiceImpl implements  BoardService {
     }
 
     @Override
+    public BoardDTO get(Long id) {
+        Board board = boardRepository.findById(id).orElse(null);
+        if (board == null) return null;
+        return entityToDto(board);
+    }
+
+
+    @Override
     public void updateBoard(BoardDTO boardDTO) {
         Board board = boardRepository.findById(boardDTO.getId()).orElse(null);
         if(board!=null){

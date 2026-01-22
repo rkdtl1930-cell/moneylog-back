@@ -3,9 +3,11 @@ package com.kbs.backend.controller;
 import com.kbs.backend.dto.BudgetDTO;
 import com.kbs.backend.dto.PageRequestDTO;
 import com.kbs.backend.dto.PageResponseDTO;
+import com.kbs.backend.security.UserPrincipal;
 import com.kbs.backend.service.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,14 +43,39 @@ public class BudgetController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createBudget(@RequestBody BudgetDTO budgetDTO) {
+    public ResponseEntity<String> createBudget(
+            @RequestBody BudgetDTO budgetDTO,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
         budgetService.createBudget(budgetDTO);
         return ResponseEntity.ok("Budget created");
     }
 
     // 예산 증감 서비스
     @PatchMapping("/limit/{mid}")
-    public ResponseEntity<Void> adjustLimit(@PathVariable Long mid, @RequestParam int delta) {
+    public ResponseEntity<Void> adjustLimit(
+            @PathVariable Long mid,
+            @RequestParam int delta,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        // 1) 인증 확인(최소)
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // 2) 본인만(mid 일치) 허용(최소)
+        if (!user.getId().equals(mid)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // 3) 입력 크기 제한(오류/남용 방지, 복잡도 0)
+        if (delta < -200_000_000 || delta > 200_000_000) {
+            return ResponseEntity.badRequest().build();
+        }
+
         budgetService.adjustLimit(mid, delta);
         return ResponseEntity.ok().build();
     }

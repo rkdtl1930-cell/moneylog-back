@@ -1,6 +1,7 @@
 package com.kbs.backend.controller;
 
 import com.kbs.backend.dto.*;
+import com.kbs.backend.security.UserPrincipal;
 import com.kbs.backend.service.BoardService;
 import net.coobird.thumbnailator.Thumbnailator;
 import org.apache.coyote.Response;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,7 +29,13 @@ public class BoardController {
     private BoardService boardService;
 
     @PostMapping
-    public ResponseEntity<Long> create(@RequestBody BoardDTO boardDTO) {
+    public ResponseEntity<Long> create(
+            @RequestBody BoardDTO boardDTO,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
         return ResponseEntity.ok(boardService.registerBoard(boardDTO));
     }
 
@@ -41,14 +49,52 @@ public class BoardController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BoardDTO> updateBoard(@PathVariable Long id, @RequestBody BoardDTO boardDTO) {
+    public ResponseEntity<Void> updateBoard(
+            @PathVariable Long id,
+            @RequestBody BoardDTO boardDTO,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        // 1) 인증 확인
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // 2) 대상 존재 확인(부작용 없는 get)
+        BoardDTO existing = boardService.get(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 3) 소유권 확인(본인 글만 수정)
+        if (existing.getMid() == null || !existing.getMid().equals(user.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // 4) 수정 수행
         boardDTO.setId(id);
         boardService.updateBoard(boardDTO);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBoard(@PathVariable Long id){
+    public ResponseEntity<Void> deleteBoard(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        BoardDTO existing = boardService.get(id);   // readcount 증가 없는 조회
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 본인 글만 삭제 가능
+        if (existing.getMid() == null || !existing.getMid().equals(user.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         boardService.deleteBoard(id);
         return ResponseEntity.ok().build();
     }

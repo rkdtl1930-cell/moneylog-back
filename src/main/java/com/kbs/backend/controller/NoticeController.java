@@ -40,7 +40,28 @@ public class NoticeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateNotice(@PathVariable Long id, @RequestBody NoticeDTO noticeDTO) {
+    public ResponseEntity<Void> updateNotice(
+            @PathVariable Long id,
+            @RequestBody NoticeDTO noticeDTO,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        // 인증 확인
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // 대상 존재 확인
+        NoticeDTO existing = noticeService.findNotice(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 소유권 확인(작성자만 수정 가능)
+        if (existing.getMid() == null || !existing.getMid().equals(user.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // 4수정 수행
         noticeDTO.setId(id);
         noticeService.updateNotice(noticeDTO);
         return ResponseEntity.ok().build();

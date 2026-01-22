@@ -30,7 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         MemberDTO memberDTO = MemberDTO.builder()
                 .id(member.getId())
                 .username(member.getUsername())
-                .password(member.getPassword())
+//                .password(member.getPassword())       // 반화에서 password 제거했습니다. chatbot으로 타 사용자 패스워드 노출 위험 제거.
                 .role(member.getRole())
                 .name(member.getName())
                 .token(jwt)
