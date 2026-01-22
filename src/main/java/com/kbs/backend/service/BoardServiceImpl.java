@@ -54,6 +54,7 @@ public class BoardServiceImpl implements  BoardService {
         if(board!=null){
             board.setTitle(boardDTO.getTitle());
             board.setContent(boardDTO.getContent());
+            board.setImageUrl(boardDTO.getImageUrl());
             boardRepository.save(board);
         }
     }

@@ -14,12 +14,14 @@ public class BudgetController {
     @Autowired
     private BudgetService budgetService;
 
+    // 안 씀 / 정확하게는 현재 연도의 현재 달의 예산을 가져오기 위한 api
     @GetMapping("/current/{mid}")
     public ResponseEntity<BudgetDTO> getMonthlyBudget(@PathVariable Long mid, @RequestParam(defaultValue = "0") int defaultLimit) {
         BudgetDTO budgetDTO = budgetService.getOrCreateMonthlyBudget(mid, defaultLimit);
         return ResponseEntity.ok(budgetDTO);
     };
 
+    // 안 씀 / 일단 DB 상에는 used_amount를 올리기 위한 api
     @PostMapping("/expense/{mid}")
     public ResponseEntity<String> addExpense(@PathVariable Long mid, @RequestParam int amount, @RequestParam(defaultValue = "0") int defaultLimit) {
         budgetService.addExpense(mid, amount, defaultLimit);

@@ -49,6 +49,7 @@ public class NoticeServiceImpl implements NoticeService {
         if(notice!=null){
             notice.setTitle(noticeDTO.getTitle());
             notice.setContent(noticeDTO.getContent());
+            notice.setImageUrl(noticeDTO.getImageUrl());
             noticeRepository.save(notice);
         }
     }

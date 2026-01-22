@@ -30,4 +30,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t ORDER BY t.id")
     List<Transaction> findBatch(Pageable pageable);
 
+    void deleteByMember_IdAndDateBetween(Long mid, LocalDate start, LocalDate end);
 }

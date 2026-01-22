@@ -140,6 +140,14 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
+    @Override
+    public void removeByPeriod(Long mid, LocalDate start, LocalDate end) {
+        if(start.isAfter(end)) {
+            throw new IllegalArgumentException("start날짜가 end날짜보다 클 수 없습니다.");
+        }
+        transactionRepository.deleteByMember_IdAndDateBetween(mid, start, end);
+    }
+
     @Transactional
     public void migrateUsedAmountFromExistingTransactions(){
         List<Budget> allBudgets= budgetRepository.findAll();

@@ -144,4 +144,14 @@ public class TransactionController {
 
         return ResponseEntity.ok(sliced);
     }
+
+    // 기간 내의 자신의 가계부 내역을 삭제하는 api
+    @DeleteMapping("/delete/period")
+    public ResponseEntity<Void> deleteByPeriod(@AuthenticationPrincipal UserPrincipal user,
+                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end){
+        Long mid = user.getId();
+        transactionService.removeByPeriod(mid, start, end);
+        return ResponseEntity.ok().build();
+    }
 }
