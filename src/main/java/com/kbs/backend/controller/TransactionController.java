@@ -70,17 +70,54 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getListByPeriod(pageRequestDTO,mid, start, end));
     }
 
+    // 회원 인증을 위해 수정함.
     @PutMapping
-    public ResponseEntity<Void> modify(@RequestBody TransactionDTO transactionDTO) {
+    public ResponseEntity<Void> modify(
+            @RequestBody TransactionDTO transactionDTO,
+            @AuthenticationPrincipal UserPrincipal userprincipal
+    ) {
+        if (userprincipal == null || userprincipal.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        if (transactionDTO.getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TransactionDTO existing = transactionService.get(transactionDTO.getId());
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (existing.getMid() == null || !existing.getMid().equals(userprincipal.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         transactionService.modify(transactionDTO);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal userprincipal
+    ) {
+        if (userprincipal == null || userprincipal.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        TransactionDTO dto = transactionService.get(id);
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 본인 소유 거래만 삭제 가능
+        if (dto.getMid() == null || !dto.getMid().equals(userprincipal.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         transactionService.remove(id);
         return ResponseEntity.ok().build();
     }
+
     @GetMapping("/member/{mid}/month")
     public ResponseEntity<PageResponseDTO<TransactionDTO>> getByMonth(@PathVariable Long mid, @RequestParam(value = "month", required = false) String monthStr, PageRequestDTO pageRequestDTO) {
         YearMonth yearMonth;
