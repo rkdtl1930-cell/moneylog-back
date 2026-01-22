@@ -14,6 +14,8 @@ public interface ReplyService {
     PageResponseDTO<ReplyDTO> getList(PageRequestDTO pageRequestDTO, Long bno);
     void modify(ReplyDTO replyDTO);
     void remove(Long id);
+    //추가: 소유권 체크/404 처리를 컨트롤러에서 하기 위한 최소 API
+    ReplyDTO get(Long id);
 
     default Reply dtoTOEntity(ReplyDTO replyDTO) {
         Board board = Board.builder().id(replyDTO.getBno()).build();

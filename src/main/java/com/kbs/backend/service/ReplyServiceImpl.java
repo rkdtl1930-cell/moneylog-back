@@ -67,4 +67,13 @@ public class ReplyServiceImpl implements ReplyService {
         reply.setContent("삭제 된 댓글입니다.");
         replyRepository.save(reply);
     }
+
+    @Override
+    public ReplyDTO get(Long id) {
+        Reply reply = replyRepository.findById(id).orElse(null);
+        if (reply == null) return null;
+        return entityTODto(reply);
+    }
+
+
 }
