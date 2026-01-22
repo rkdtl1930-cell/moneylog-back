@@ -20,5 +20,4 @@ public class MemberDTO {
     private String nickname;
     private Role role;
     private String token;
-    private String interesting;
 }

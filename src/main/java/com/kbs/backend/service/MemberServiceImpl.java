@@ -83,19 +83,10 @@ public class MemberServiceImpl implements MemberService {
         return passwordEncoder.matches(rawPassword, member.getPassword());
     }
 
-    @Override
-    public void changeInteresting(String username, String interesting) {
-        Member member = memberRepository.findByUsername(username);
-        member.setInteresting(interesting);
-        memberRepository.save(member);
-    }
 
     @Override
-    public void changeInfo(String username, String newPassword, String interesting, String nickname) {
+    public void changeInfo(String username, String newPassword,  String nickname) {
         Member member = memberRepository.findByUsername(username);
-        if(interesting != null && !interesting.isBlank()) {
-            member.setInteresting(interesting);
-        }
         if(nickname != null && !nickname.isBlank()) {
             member.setNickname(nickname);
         }

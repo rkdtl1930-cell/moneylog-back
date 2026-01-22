@@ -15,8 +15,7 @@ public interface MemberService {
   void deleteMember(Long id);
   void changePassword(String username, String newPassword);
   boolean checkPassword(String username, String rawPassword);
-  void changeInteresting(String username, String interesting);
-  void changeInfo(String username, String newPassword, String interesting, String nickname);
+  void changeInfo(String username, String newPassword, String nickname);
 
   default Member dtoToEntity(MemberDTO memberDTO) {
       return Member.builder()
@@ -24,7 +23,6 @@ public interface MemberService {
               .password(memberDTO.getPassword())
               .name(memberDTO.getName())
               .role(memberDTO.getRole())
-              .interesting(memberDTO.getInteresting())
               .nickname(memberDTO.getNickname())
               .build();
   }
@@ -35,7 +33,6 @@ public interface MemberService {
               .username(member.getUsername())
               .name(member.getName())
               .role(member.getRole())
-              .interesting(member.getInteresting())
               .nickname(member.getNickname())
               .build();
   }

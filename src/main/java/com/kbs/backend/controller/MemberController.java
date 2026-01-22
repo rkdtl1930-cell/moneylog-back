@@ -53,22 +53,13 @@ public class MemberController {
         return ResponseEntity.ok(matches);
     }
 
-//    // 회원 수정에서 관심분야 변경
-//    @PostMapping("/change-interesting")
-//    public ResponseEntity<String> changeInteresting(@AuthenticationPrincipal UserPrincipal principal, @RequestBody Map<String, String> request) {
-//        String interesting = request.get("interesting");
-//        memberService.changeInteresting(principal.getUsername(), interesting);
-//        return ResponseEntity.ok("Interesting changed successfully");
-//    }
 
-    // 회원 정보 수정 - 비밀번호, 관심사, 닉네임
+    // 회원 정보 수정 - 비밀번호, 닉네임
     @PutMapping("/change-info")
     public ResponseEntity<String> changeInfo(@AuthenticationPrincipal UserPrincipal principal, @RequestBody Map<String, String> request) {
         String newPassword = request.get("password");
-        String interesting = request.get("interesting");
         String nickname = request.get("nickname");
         if((newPassword == null || newPassword.isBlank())&&
-            (interesting == null || interesting.isBlank())&&
             (nickname == null || nickname.isBlank())) {
             return ResponseEntity.badRequest().body("변경할 값이 없습니다.");
         }
@@ -80,11 +71,7 @@ public class MemberController {
                 (nickname == null || nickname.isBlank())) {
             return ResponseEntity.badRequest().body("닉네임은 비어 있을 수 없습니다.");
         }
-        if (request.containsKey("interesting") &&
-                (interesting == null || interesting.isBlank())) {
-            return ResponseEntity.badRequest().body("관심 사항은 비어 있을 수 없습니다.");
-        }
-        memberService.changeInfo(principal.getUsername(), newPassword, interesting, nickname);
+        memberService.changeInfo(principal.getUsername(), newPassword,nickname);
         return ResponseEntity.ok("회원 정보가 수정되었습니다.");
     }
 }
