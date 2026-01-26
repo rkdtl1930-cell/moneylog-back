@@ -31,4 +31,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findBatch(Pageable pageable);
 
     void deleteByMember_IdAndDateBetween(Long mid, LocalDate start, LocalDate end);
+
+    List<Transaction> findByMember_IdAndDateAndAmountAndMemoContaining(Long mid, LocalDate date, int amount, String memo);
+    List<Transaction> findByMember_IdAndDate(Long mid, LocalDate date);
+    List<Transaction> findByMember_Id(Long mid);
 }

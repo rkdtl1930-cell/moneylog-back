@@ -5,6 +5,7 @@ import com.kbs.backend.domain.Transaction;
 import com.kbs.backend.domain.TransactionType;
 import com.kbs.backend.dto.PageRequestDTO;
 import com.kbs.backend.dto.PageResponseDTO;
+import com.kbs.backend.dto.TransactionCandidateDTO;
 import com.kbs.backend.dto.TransactionDTO;
 
 import java.time.LocalDate;
@@ -24,6 +25,15 @@ public interface TransactionService {
     List<Map<String, Object>> getMonthlyStats(Long mid);
     PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date);
     void removeByPeriod(Long mid, LocalDate start, LocalDate end);
+    void removeByAI(Long mid, LocalDate date, int amount, String memo);
+    void modifyByAI(Long mid, LocalDate date, int amount, String memo, TransactionDTO newData);
+    void confirmDeleteByChat(Long mid, List<Integer> candidateIndexes);
+    List<TransactionCandidateDTO> getCandidatesForUser(Long mid, LocalDate date, int amount, String memo);
+    void storeDeleteCandidates(Long mid, List<TransactionCandidateDTO> dtos);
+    List<TransactionCandidateDTO> getUpdateCandidates(Long mid, LocalDate date, Integer amount, String memo);
+    void confirmUpdateByChat(Long mid, Integer candidateIndex, TransactionDTO newData);
+    void storeUpdateCandidates(Long mid, List<TransactionCandidateDTO> dtos);
+
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
         Transaction transaction = Transaction.builder()

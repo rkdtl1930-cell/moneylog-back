@@ -1,6 +1,6 @@
 package com.kbs.backend.dto;
 
-import com.kbs.backend.domain.TransactionType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,13 +13,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDTO {
-    private Long id;
-    private Long mid;
-    private String type;
-    private Integer amount;
-    private String category;
-    private String memo;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ModifyByAIRequest {
     private LocalDate date;
-    private LocalDateTime createTime;
+    private Integer amount;
+    private String memo;
+//    private TransactionDTO newData;
 }
