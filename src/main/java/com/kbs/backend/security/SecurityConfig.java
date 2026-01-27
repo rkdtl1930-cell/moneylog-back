@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 //                        .requestMatchers("/api/notices/list/**").permitAll()
 //                        .requestMatchers("/api/authentication/**").permitAll()
+                        // WebSocket
+                        .requestMatchers("/ws/**").authenticated()
                         .requestMatchers("/api/**").permitAll()
                 )
                 .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
