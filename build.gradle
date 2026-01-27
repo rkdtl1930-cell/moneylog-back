@@ -53,6 +53,8 @@ dependencies {
     implementation("net.coobird:thumbnailator:0.4.20")
     // OpenAPI 문서(/v3/api-docs)와 Swagger UI(/swagger-ui/index.html)를 자동 생성하기 위한 의존성 추가
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
+    // websocket을 이용하기 위한 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 tasks.named('test') {
