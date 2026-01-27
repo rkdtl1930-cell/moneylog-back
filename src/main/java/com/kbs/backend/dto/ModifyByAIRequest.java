@@ -18,5 +18,6 @@ public class ModifyByAIRequest {
     private LocalDate date;
     private Integer amount;
     private String memo;
+    private String type;
 //    private TransactionDTO newData;
 }

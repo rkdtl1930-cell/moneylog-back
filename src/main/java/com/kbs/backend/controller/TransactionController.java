@@ -2,6 +2,7 @@ package com.kbs.backend.controller;
 
 import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Transaction;
+import com.kbs.backend.domain.TransactionType;
 import com.kbs.backend.dto.*;
 import com.kbs.backend.exception.AmbiguousTransactionException;
 import com.kbs.backend.repository.MemberRepository;
@@ -163,6 +164,7 @@ public class TransactionController {
     @GetMapping("/recent")
     public ResponseEntity<List<TransactionDTO>> recent(
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(value = "type", required = false ) String type,
             @AuthenticationPrincipal UserPrincipal user
     ) {
         // 안전 상한(툴 limit 최대 50)
@@ -174,7 +176,7 @@ public class TransactionController {
                 .size(Math.max(10, safeLimit))
                 .build();
 
-        PageResponseDTO<TransactionDTO> page = transactionService.getList(pr, user.getId());
+        PageResponseDTO<TransactionDTO> page = transactionService.getListByAI(pr, user.getId(), type);
 
         // 정확히 limit 개수만 반환
         List<TransactionDTO> sliced = page.getDtoList()
@@ -203,7 +205,7 @@ public class TransactionController {
             return ResponseEntity.status(401).build();
         }
         try{
-            transactionService.removeByAI(user.getId(), req.getDate(), req.getAmount(), req.getMemo());
+            transactionService.removeByAI(user.getId(), req.getDate(), req.getAmount(), req.getMemo(), req.getType());
             return ResponseEntity.ok().build();
         }catch(AmbiguousTransactionException e){
             int idx =1;
@@ -216,6 +218,7 @@ public class TransactionController {
                         .memo(tx.getMemo())
                         .category(tx.getCategory())
                         .number(idx++)
+                        .type(tx.getType().name())
                         .build();
                 candidateDTOS.add(dto);
             }
@@ -239,7 +242,7 @@ public class TransactionController {
     @PostMapping("/chat/delete/confirm")
     public ResponseEntity<?> confirmDelete(@AuthenticationPrincipal UserPrincipal user,
                                            @RequestBody DeleteConfirmRequest req){
-        transactionService.confirmDeleteByChat(user.getId(), req.getSelectedIndexes());
+        transactionService.confirmDeleteByChat(user.getId(), req.getSelectedIndexes(), req.getType());
         return ResponseEntity.ok().body(Map.of("message", "선택된 항목 삭제 완료"));
     }
 
@@ -261,7 +264,8 @@ public class TransactionController {
                         user.getId(),
                         req.getDate(),
                         req.getAmount(),
-                        req.getMemo()
+                        req.getMemo(),
+                        req.getType()
                 );
 
         if (candidates.isEmpty()) {
@@ -301,7 +305,10 @@ public class TransactionController {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "후보 번호가 없습니다."));
         }
-
+        if(req.getType() == null){
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message","거래 타입이 없습니다."));
+        }
         if (req.getNewData() == null) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "수정할 내용이 없습니다."));
@@ -310,6 +317,7 @@ public class TransactionController {
         try {
             transactionService.confirmUpdateByChat(
                     user.getId(),
+                    req.getType(),
                     req.getCandidateIndex(),
                     req.getNewData()
             );
@@ -332,6 +340,10 @@ public class TransactionController {
         @Getter
         @Setter
         private String memo;
+
+        @Getter
+        @Setter
+        private String type;
     }
 
 
@@ -342,6 +354,9 @@ public class TransactionController {
         @Getter
         @Setter
         private TransactionDTO newData;
+        @Getter
+        @Setter
+        private  String type;
     }
 
     public static class UpdateConfirmRequest {
@@ -350,6 +365,9 @@ public class TransactionController {
 
         @Getter @Setter
         private TransactionDTO newData; // date / amount / memo 중 일부만 채워짐
+
+        @Getter @Setter
+        private String type;
     }
 
 }

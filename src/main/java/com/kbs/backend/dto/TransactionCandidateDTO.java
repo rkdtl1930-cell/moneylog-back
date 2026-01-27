@@ -20,5 +20,5 @@ public class TransactionCandidateDTO {
     private String memo;
     private String category;
     private int number;
-
+    private String type;
 }

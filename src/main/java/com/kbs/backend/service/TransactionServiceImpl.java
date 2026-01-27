@@ -16,6 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ public class TransactionServiceImpl implements TransactionService {
     private BudgetRepository budgetRepository;
 
     private final Map<Long, List<TransactionCandidateDTO>> userCandidates = new HashMap<>();
+    private SecurityExpressionHandler securityExpressionHandler;
 
     @Override
     public Long register(TransactionDTO transactionDTO, Member member) {
@@ -157,9 +159,18 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void removeByAI(Long mid, LocalDate date, int amount, String memo) {
-        // 날짜로 먼저 조회
-        List<Transaction> list = transactionRepository.findByMember_IdAndDate(mid, date);
+    public void removeByAI(Long mid, LocalDate date, int amount, String memo, String type) {
+        TransactionType txType = null;
+        if(type != null && !type.isBlank()){
+            txType = TransactionType.valueOf(type.toUpperCase());
+        }
+        // 날짜 + 타입으로 먼저 조회
+        List<Transaction> list;
+       if(txType == null){
+           list = transactionRepository.findByMember_IdAndDate(mid, date);
+       }else{
+           list = transactionRepository.findByMember_IdAndDateAndType(mid, date, txType);
+       }
 
         // 금액 조건 적용 (0이면 무시)
         if(amount > 0) {
@@ -205,10 +216,22 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void confirmDeleteByChat(Long mid, List<Integer> candidateIndexes) {
+    public void confirmDeleteByChat(Long mid, List<Integer> candidateIndexes, String expectedType) {
         List<TransactionCandidateDTO> candidates = userCandidates.get(mid);
         if(candidates == null || candidates.isEmpty()) {
             throw new IllegalStateException("삭제 후보 없음");
+        }
+        if(expectedType == null || expectedType.isBlank()) {
+            throw new IllegalArgumentException("삭제 타입이 지정되지 않았습니다.");
+        }
+        // 🔹 이 후보 리스트가 정말 그 타입인지 검증
+        for (TransactionCandidateDTO dto : candidates) {
+            if (!expectedType.equalsIgnoreCase(dto.getType())) {
+                throw new IllegalStateException(
+                        "삭제 컨텍스트 타입 불일치: expected=" + expectedType +
+                                ", actual=" + dto.getType()
+                );
+            }
         }
         for(Integer idx : candidateIndexes) {
             if(idx > 0 && idx <= candidates.size()) {
@@ -231,15 +254,25 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransactionCandidateDTO> getUpdateCandidates(Long mid, LocalDate date, Integer amount, String memo) {
+    public List<TransactionCandidateDTO> getUpdateCandidates(Long mid, LocalDate date, Integer amount, String memo, String type) {
 
         System.out.println(">>> mid = " + mid);
         System.out.println(">>> cond date = " + date);
         System.out.println(">>> cond amount = " + amount);
         System.out.println(">>> cond memo = [" + memo + "]");
 
+        TransactionType txType = null;
+        if(type != null && !type.isBlank()){
+            txType = TransactionType.valueOf(type.toUpperCase());
+        }
+
         // 1) 무조건 전체 가져오기
-        List<Transaction> list = transactionRepository.findByMember_Id(mid);
+        List<Transaction> list;
+        if(txType == null){
+            list = transactionRepository.findByMember_Id(mid);
+        }else{
+            list = transactionRepository.findByMember_IdAndType(mid, txType);
+        }
 
         System.out.println(">>> total tx count = " + list.size());
 
@@ -309,7 +342,8 @@ public class TransactionServiceImpl implements TransactionService {
                         tx.getAmount(),
                         tx.getMemo(),
                         tx.getCategory(),
-                        seq.getAndIncrement()
+                        seq.getAndIncrement(),
+                        tx.getType().name()
                 ))
                 .toList();
 
@@ -326,7 +360,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void confirmUpdateByChat(Long mid, Integer candidateIndex, TransactionDTO newData) {
+    public void confirmUpdateByChat(Long mid, String type, Integer candidateIndex, TransactionDTO newData) {
         List<TransactionCandidateDTO> candidates = userCandidates.get(mid);
 
         if (candidates == null || candidates.isEmpty()) {
@@ -343,9 +377,17 @@ public class TransactionServiceImpl implements TransactionService {
 
         TransactionCandidateDTO selected = candidates.get(candidateIndex - 1);
 
+        if(!selected.getType().equals(type)){
+            throw new IllegalArgumentException("후보 타입 불일치");
+        }
+
         Transaction tx = transactionRepository.findById(selected.getId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "거래 ID 없음: " + selected.getId()));
+
+        if(!tx.getType().name().equals(type)){
+            throw  new IllegalArgumentException("타입 불일치");
+        }
 
         // ✅ 날짜 / 금액 / 메모만 수정 허용
         if (newData.getDate() != null) {
@@ -369,6 +411,27 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void storeUpdateCandidates(Long mid, List<TransactionCandidateDTO> dtos) {
         userCandidates.put(mid, dtos);
+    }
+
+    @Override
+    public PageResponseDTO<TransactionDTO> getListByAI(PageRequestDTO pageRequestDTO, Long mid, String type) {
+        Pageable pageable = pageRequestDTO.getPageable("date");
+        Page<Transaction> result;
+        if(type == null || type.isBlank()){
+            result = transactionRepository.findByMember_Id(mid, pageable);
+        } else {
+            TransactionType txType = TransactionType.valueOf(type.toUpperCase());
+            result = transactionRepository.findByMember_IdAndType(mid, txType, pageable);
+        }
+        List<TransactionDTO> dtoList = result
+                .stream()
+                .map(this::entityToDto)
+                .collect(Collectors.toList());
+        return PageResponseDTO.<TransactionDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int) result.getTotalElements())
+                .build();
     }
 
     @Transactional

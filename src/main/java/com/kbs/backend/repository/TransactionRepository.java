@@ -1,6 +1,7 @@
 package com.kbs.backend.repository;
 
 import com.kbs.backend.domain.Transaction;
+import com.kbs.backend.domain.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Page<Transaction> findByMember_Id(Long mid, Pageable pageable);
     Page<Transaction> findByMember_IdAndDate(Long mid, LocalDate date, Pageable pageable);
     Page<Transaction> findByMember_IdAndDateBetween(Long mid, LocalDate start, LocalDate end, Pageable pageable);
+    Page<Transaction> findByMember_IdAndType(Long mid, TransactionType type, Pageable pageable);
 
     @Query("SELECT t.category AS category, SUM(t.amount) AS total " +
             "FROM Transaction t WHERE t.member.id = :mid AND t.type = 'EXPENSE' " +
@@ -35,4 +37,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByMember_IdAndDateAndAmountAndMemoContaining(Long mid, LocalDate date, int amount, String memo);
     List<Transaction> findByMember_IdAndDate(Long mid, LocalDate date);
     List<Transaction> findByMember_Id(Long mid);
+    List<Transaction> findByMember_IdAndDateAndType(Long mid, LocalDate date, TransactionType type);
+    List<Transaction> findByMember_IdAndType(Long mid, TransactionType type);
 }

@@ -25,14 +25,15 @@ public interface TransactionService {
     List<Map<String, Object>> getMonthlyStats(Long mid);
     PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date);
     void removeByPeriod(Long mid, LocalDate start, LocalDate end);
-    void removeByAI(Long mid, LocalDate date, int amount, String memo);
+    void removeByAI(Long mid, LocalDate date, int amount, String memo, String type);
     void modifyByAI(Long mid, LocalDate date, int amount, String memo, TransactionDTO newData);
-    void confirmDeleteByChat(Long mid, List<Integer> candidateIndexes);
+    void confirmDeleteByChat(Long mid, List<Integer> candidateIndexes, String expectedType);
     List<TransactionCandidateDTO> getCandidatesForUser(Long mid, LocalDate date, int amount, String memo);
     void storeDeleteCandidates(Long mid, List<TransactionCandidateDTO> dtos);
-    List<TransactionCandidateDTO> getUpdateCandidates(Long mid, LocalDate date, Integer amount, String memo);
-    void confirmUpdateByChat(Long mid, Integer candidateIndex, TransactionDTO newData);
+    List<TransactionCandidateDTO> getUpdateCandidates(Long mid, LocalDate date, Integer amount, String memo, String type);
+    void confirmUpdateByChat(Long mid, String type, Integer candidateIndex, TransactionDTO newData);
     void storeUpdateCandidates(Long mid, List<TransactionCandidateDTO> dtos);
+    PageResponseDTO<TransactionDTO> getListByAI(PageRequestDTO pageRequestDTO, Long mid, String type);
 
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
