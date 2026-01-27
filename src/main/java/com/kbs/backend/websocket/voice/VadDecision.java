@@ -1,4 +1,8 @@
 package com.kbs.backend.websocket.voice;
 
-public class VadDecision {
-}
+public record VadDecision(
+        boolean isSpeech,
+        boolean speechStart,
+        boolean speechEnd,
+        int rms
+) {}

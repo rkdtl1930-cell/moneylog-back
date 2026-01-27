@@ -1,4 +1,5 @@
 package com.kbs.backend.stt;
 
-public class SttClient {
+public interface SttClient {
+    String transcribeWav(byte[] wavBytes);
 }

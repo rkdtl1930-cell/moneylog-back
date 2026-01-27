@@ -20,6 +20,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     public static final String ATTR_AUTH = "AUTH";
     public static final String ATTR_USER_ID = "USER_ID";
+    public static final String ATTR_AUTH_HEADER = "AUTH_HEADER";
 
     private final JwtProvider jwtProvider;
 
@@ -47,10 +48,10 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             if (auth == null) return false;
         }
 
-        attributes.put(ATTR_AUTH, auth);
+        // 요청에서 Authorization 헤더 원문을 꺼내 attributes에 저장
+        String authHeader = request.getHeaders().getFirst("Authorization");
+        attributes.put(ATTR_AUTH_HEADER, authHeader);
 
-        // userId를 principal에서 꺼내고 싶으면(프로젝트의 UserPrincipal 구조에 맞춰) 여기서 추출
-        // 일단은 AUTH만 저장해도 다음 단계 진행 가능.
         return true;
     }
 

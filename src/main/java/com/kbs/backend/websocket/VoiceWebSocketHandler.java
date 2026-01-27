@@ -1,69 +1,68 @@
 package com.kbs.backend.websocket;
 
+import com.kbs.backend.websocket.voice.VoiceSession;
+import com.kbs.backend.websocket.voice.VoiceSessionManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 @Component
-public class VoiceWebSocketHandler extends TextWebSocketHandler {
+@RequiredArgsConstructor
+public class VoiceWebSocketHandler extends AbstractWebSocketHandler {
 
-    private final Map<String, String> sessionIdByWs = new ConcurrentHashMap<>();
+    private final VoiceSessionManager voiceSessionManager;
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String voiceSessionId = UUID.randomUUID().toString();
-        sessionIdByWs.put(session.getId(), voiceSessionId);
-
+    public void afterConnectionEstablished(WebSocketSession session) {
         Authentication auth = (Authentication) session.getAttributes().get(JwtHandshakeInterceptor.ATTR_AUTH);
+        String authHeader = (String) session.getAttributes().get(JwtHandshakeInterceptor.ATTR_AUTH_HEADER);
 
-        log.info("[WS][OPEN] wsSessionId={} voiceSessionId={} auth={}",
-                session.getId(), voiceSessionId, (auth != null ? auth.getName() : "null"));
+        VoiceSession vs = voiceSessionManager.onOpen(session, auth, authHeader);
 
-        // hello_ack 전송(세션ID 내려줌)
+        // hello_ack
         String payload = """
-                {"type":"hello_ack","sessionId":"%s","audio":{"format":"PCM16","sampleRate":16000,"channels":1,"frameMs":50}}
-                """.formatted(voiceSessionId);
-        session.sendMessage(new TextMessage(payload));
+                {"type":"hello_ack","sessionId":"%s","audio":{"format":"PCM16","sampleRate":16000,"channels":1,"frameMs":"40~60"}}
+                """.formatted(vs.getVoiceSessionId());
+
+        try {
+            session.sendMessage(new TextMessage(payload));
+        } catch (Exception e) {
+            log.warn("[WS][HELLO_ACK_FAIL] wsSessionId={} err={}", session.getId(), e.toString());
+        }
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        String txt = message.getPayload();
-        log.info("[WS][TEXT] wsSessionId={} payload={}", session.getId(), txt);
-
-        // MVP: 그대로 ack (나중에 hello, audio_end, cancel 등 이벤트 라우팅으로 확장)
-        session.sendMessage(new TextMessage("{\"type\":\"ack\",\"ok\":true}"));
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+        voiceSessionManager.onText(session, message.getPayload());
     }
 
     @Override
     protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) {
-        int bytes = message.getPayloadLength();
-        String voiceSessionId = sessionIdByWs.get(session.getId());
-        log.debug("[WS][BIN] wsSessionId={} voiceSessionId={} bytes={}",
-                session.getId(), voiceSessionId, bytes);
-
-        // 만약 sendMessage 등에서 예외가 날 수 있으면 try-catch로 감싸기
-        // try { ... } catch (IOException e) { ... }
+        // 수신만 하고 처리는 worker가 수행
+        var buf = message.getPayload();
+        byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
+        voiceSessionManager.onBinary(session, bytes);
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+    public void handleTransportError(WebSocketSession session, Throwable exception) {
         log.warn("[WS][ERR] wsSessionId={} err={}", session.getId(), exception.toString());
-        session.close(CloseStatus.SERVER_ERROR);
+        try {
+            session.close(CloseStatus.SERVER_ERROR);
+        } catch (Exception ignored) {}
+        voiceSessionManager.onClose(session);
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        String voiceSessionId = sessionIdByWs.remove(session.getId());
-        log.info("[WS][CLOSE] wsSessionId={} voiceSessionId={} status={}", session.getId(), voiceSessionId, status);
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+        log.info("[WS][CLOSE] wsSessionId={} status={}", session.getId(), status);
+        voiceSessionManager.onClose(session);
     }
 }
-
