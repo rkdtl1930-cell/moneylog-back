@@ -51,6 +51,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         // 요청에서 Authorization 헤더 원문을 꺼내 attributes에 저장
         String authHeader = request.getHeaders().getFirst("Authorization");
         attributes.put(ATTR_AUTH_HEADER, authHeader);
+        attributes.put(ATTR_AUTH, auth);
 
         return true;
     }

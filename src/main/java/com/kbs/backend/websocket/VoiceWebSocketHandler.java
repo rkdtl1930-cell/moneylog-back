@@ -25,7 +25,7 @@ public class VoiceWebSocketHandler extends AbstractWebSocketHandler {
 
         VoiceSession vs = voiceSessionManager.onOpen(session, auth, authHeader);
 
-        // hello_ack
+        // hello_ack: 클라이언트에게 오디오 규격을 고지
         String payload = """
                 {"type":"hello_ack","sessionId":"%s","audio":{"format":"PCM16","sampleRate":16000,"channels":1,"frameMs":"40~60"}}
                 """.formatted(vs.getVoiceSessionId());
@@ -42,9 +42,9 @@ public class VoiceWebSocketHandler extends AbstractWebSocketHandler {
         voiceSessionManager.onText(session, message.getPayload());
     }
 
+    // handleBinaryMessage()는 WS 스레드에서 무거운 처리를 하지 않고 payload만 복사해서 넘깁니다.
     @Override
     protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) {
-        // 수신만 하고 처리는 worker가 수행
         var buf = message.getPayload();
         byte[] bytes = new byte[buf.remaining()];
         buf.get(bytes);
