@@ -3,10 +3,7 @@ package com.kbs.backend.service;
 import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Transaction;
 import com.kbs.backend.domain.TransactionType;
-import com.kbs.backend.dto.PageRequestDTO;
-import com.kbs.backend.dto.PageResponseDTO;
-import com.kbs.backend.dto.TransactionCandidateDTO;
-import com.kbs.backend.dto.TransactionDTO;
+import com.kbs.backend.dto.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +31,7 @@ public interface TransactionService {
     void confirmUpdateByChat(Long mid, String type, Integer candidateIndex, TransactionDTO newData);
     void storeUpdateCandidates(Long mid, List<TransactionCandidateDTO> dtos);
     PageResponseDTO<TransactionDTO> getListByAI(PageRequestDTO pageRequestDTO, Long mid, String type);
+    BatchRegisterResultDTO registerBatch(List<TransactionDTO> dtos, Member member);
 
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {

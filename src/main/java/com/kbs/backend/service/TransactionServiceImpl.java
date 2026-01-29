@@ -4,10 +4,7 @@ import com.kbs.backend.domain.Budget;
 import com.kbs.backend.domain.Member;
 import com.kbs.backend.domain.Transaction;
 import com.kbs.backend.domain.TransactionType;
-import com.kbs.backend.dto.PageRequestDTO;
-import com.kbs.backend.dto.PageResponseDTO;
-import com.kbs.backend.dto.TransactionCandidateDTO;
-import com.kbs.backend.dto.TransactionDTO;
+import com.kbs.backend.dto.*;
 import com.kbs.backend.exception.AmbiguousTransactionException;
 import com.kbs.backend.repository.BudgetRepository;
 import com.kbs.backend.repository.MemberRepository;
@@ -18,13 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -432,6 +427,33 @@ public class TransactionServiceImpl implements TransactionService {
                 .dtoList(dtoList)
                 .total((int) result.getTotalElements())
                 .build();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BatchRegisterResultDTO registerBatch(List<TransactionDTO> dtos, Member member) {
+        int success = 0;
+        List<BatchFailItem> failures = new ArrayList<>();
+        for (int i = 0; i < dtos.size(); i++) {
+            TransactionDTO dto = dtos.get(i);
+            try{
+                register(dto, member);
+                success++;
+            }catch(Exception e){
+                failures.add(
+                        new BatchFailItem(
+                                i,
+                                e.getMessage(),
+                                dto
+                        )
+                );
+            }
+        }
+        return new BatchRegisterResultDTO(
+                success,
+                failures.size(),
+                failures
+        );
     }
 
     @Transactional
