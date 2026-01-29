@@ -44,6 +44,16 @@ public class TransactionController {
         return ResponseEntity.ok(id);
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<?> registerBatch(@RequestBody TransactionBatchRequestDTO req, @AuthenticationPrincipal UserPrincipal userPrincipal){
+        if(userPrincipal == null || userPrincipal.getId() == null) return ResponseEntity.status(401).build();
+        Member member = memberRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if(req.getTransactions() == null || req.getTransactions().isEmpty()) return ResponseEntity.badRequest().body(Map.of("message","등록할 내역이 없습니다."));
+        BatchRegisterResultDTO result = transactionService.registerBatch(req.getTransactions(), member);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDTO> get(@PathVariable Long id) {
         TransactionDTO transactionDTO = transactionService.get(id);
