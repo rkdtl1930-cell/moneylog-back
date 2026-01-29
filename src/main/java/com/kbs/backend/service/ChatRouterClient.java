@@ -40,4 +40,3 @@ public class ChatRouterClient {
         return reply == null ? "" : reply.toString();
     }
 }
-

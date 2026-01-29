@@ -58,8 +58,16 @@ public class VoiceAudioWorker implements Runnable {
 
                 // 관측 이벤트(너무 잦으면 부담이므로 필요 시 주기 제한)
                 session.sendJson("""
-                        {"type":"debug","kind":"vad","state":"%s","rms":%d,"isSpeech":%s}
-                        """.formatted(session.getState().name(), d.rms(), d.isSpeech()));
+                    {"type":"debug","kind":"vad","state":"%s","rms":%d,"rmsEma":%d,"noiseFloor":%d,"startTh":%d,"endTh":%d,"isSpeech":%s}
+                    """.formatted(
+                        session.getState().name(),
+                        d.rms(),
+                        d.rmsEma(),
+                        d.noiseFloor(),
+                        d.startThreshold(),
+                        d.endThreshold(),
+                        d.isSpeech()
+                    ));
 
                 // barge-in: SPEAKING 중 사용자가 말하기 시작하면 TTS 즉시 취소하고 LISTENING으로 전환
                 if (session.getState() == VoiceState.SPEAKING) {
