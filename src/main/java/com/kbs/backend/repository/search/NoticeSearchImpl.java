@@ -40,7 +40,8 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
                         NoticeDTO.class,
                         notice.id,
                         notice.title,
-                        notice.content
+                        notice.content,
+                        notice.createTime
                 )
         );
         this.getQuerydsl().applyPagination(pageable, dtoQuery);
