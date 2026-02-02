@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -127,6 +128,80 @@ public class TransactionServiceImpl implements TransactionService {
     public List<Map<String, Object>> getMonthlyStats(Long mid) {
         return transactionRepository.sumByMonth(mid);
     }
+
+    @Override
+    public TopWeekdayAvgExpenseDTO getTopWeekdayAvgExpense(Long mid, LocalDate start, LocalDate end) {
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("start/end는 null일 수 없습니다.");
+        }
+        if (end.isBefore(start)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        // 1) 요일별 총 지출(sum)
+        List<Map<String, Object>> rows = transactionRepository.sumExpenseByWeekdayBetween(mid, start, end);
+
+        EnumMap<DayOfWeek, Double> sumByDow = new EnumMap<>(DayOfWeek.class);
+        for (DayOfWeek d : DayOfWeek.values()) sumByDow.put(d, 0.0);
+
+        for (Map<String, Object> row : rows) {
+            // MySQL DAYOFWEEK: 1=Sunday ... 7=Saturday
+            int mysqlDow = ((Number) row.get("dow")).intValue();
+            double total = ((Number) row.get("total")).doubleValue();
+
+            DayOfWeek dow = mysqlDowToJava(mysqlDow);
+            sumByDow.put(dow, sumByDow.get(dow) + total);
+        }
+
+        // 2) 기간 내 요일 발생 횟수(분모)
+        EnumMap<DayOfWeek, Integer> countByDow = new EnumMap<>(DayOfWeek.class);
+        for (DayOfWeek d : DayOfWeek.values()) countByDow.put(d, 0);
+
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            DayOfWeek dow = d.getDayOfWeek();
+            countByDow.put(dow, countByDow.get(dow) + 1);
+        }
+
+        // 3) 평균 = (요일 총지출) / (요일 발생 횟수) → 최대값 선택
+        DayOfWeek bestDow = DayOfWeek.MONDAY;
+        double bestAvg = -1.0;
+
+        for (DayOfWeek dow : DayOfWeek.values()) {
+            int cnt = countByDow.get(dow);
+            double avg = (cnt <= 0) ? 0.0 : (sumByDow.get(dow) / cnt);
+
+            if (avg > bestAvg) {
+                bestAvg = avg;
+                bestDow = dow;
+            }
+        }
+
+        return TopWeekdayAvgExpenseDTO.builder()
+                .weekday(toKorean(bestDow))
+                .avgAmount(bestAvg)
+                .build();
+    }
+
+    private DayOfWeek mysqlDowToJava(int mysqlDow) {
+        // MySQL: 1(Sun)~7(Sat) → Java: 1(Mon)~7(Sun)
+        int javaDow = (mysqlDow == 1) ? 7 : (mysqlDow - 1);
+        return DayOfWeek.of(javaDow);
+    }
+
+    private String toKorean(DayOfWeek dow) {
+        return switch (dow) {
+            case MONDAY -> "월요일";
+            case TUESDAY -> "화요일";
+            case WEDNESDAY -> "수요일";
+            case THURSDAY -> "목요일";
+            case FRIDAY -> "금요일";
+            case SATURDAY -> "토요일";
+            case SUNDAY -> "일요일";
+        };
+    }
+
 
     @Override
     public PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date) {

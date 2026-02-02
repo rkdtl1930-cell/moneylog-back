@@ -18,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -159,6 +160,56 @@ public class TransactionController {
         Long mid = user.getId();
         return ResponseEntity.ok(transactionService.getMonthlyStats(mid));
     }
+
+    // 요일별 평균 지출(기간: month/year) 중 최댓값 반환 (chat-router)
+    // scope=month: month=YYYY-MM (없으면 현재 월)
+    // scope=year : year=YYYY (없으면 현재 연)
+    @GetMapping("/weekday/top")
+    public ResponseEntity<TopWeekdayAvgExpenseDTO> topWeekdayAvgExpense(
+            @RequestParam("scope") String scope,
+            @RequestParam(value = "month", required = false) String monthStr,
+            @RequestParam(value = "year", required = false) String yearStr,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        Long mid = user.getId();
+
+        LocalDate start;
+        LocalDate end;
+
+        if ("month".equalsIgnoreCase(scope)) {
+            YearMonth ym = (monthStr == null || monthStr.isBlank()) ? YearMonth.now() : YearMonth.parse(monthStr);
+            start = ym.atDay(1);
+            end = ym.atEndOfMonth();
+        } else if ("year".equalsIgnoreCase(scope)) {
+            int y = (yearStr == null || yearStr.isBlank()) ? Year.now().getValue() : Integer.parseInt(yearStr);
+            start = LocalDate.of(y, 1, 1);
+            end = LocalDate.of(y, 12, 31);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // 미래 날짜 제외: 분모(count) 왜곡 방지
+        LocalDate today = LocalDate.now();
+
+        // 조회 시작일이 오늘보다 미래면(예: 미래 달/미래 연도 조회) → 오늘까지 데이터가 없으므로 0 반환
+        if (start.isAfter(today)) {
+            return ResponseEntity.ok(
+                    TopWeekdayAvgExpenseDTO.builder()
+                            .weekday("")
+                            .avgAmount(0.0)
+                            .build()
+            );
+        }
+
+        // end가 오늘보다 미래면 today로 절단(이번 달/올해 질문에서 미래 날짜 제외)
+        if (end.isAfter(today)) {
+            end = today;
+        }
+
+
+        return ResponseEntity.ok(transactionService.getTopWeekdayAvgExpense(mid, start, end));
+    }
+
 
     //특정 한 하루의 내역만 보게 하는 서비스
     @GetMapping("/member/{mid}/day")

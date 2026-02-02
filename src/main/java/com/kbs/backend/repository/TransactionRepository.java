@@ -22,12 +22,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "FROM Transaction t WHERE t.member.id = :mid AND t.type = 'EXPENSE' " +
             "GROUP BY t.category")
     List<Map<String, Object>> sumByCategory(@Param("mid") Long mid);
+
     @Query("SELECT FUNCTION('DATE_FORMAT', t.date, '%Y-%m') AS month, " +
             "SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END) AS income, " +
             "SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END) AS expense " +
             "FROM Transaction t WHERE t.member.id = :mid " +
             "GROUP BY FUNCTION('DATE_FORMAT', t.date, '%Y-%m') ORDER BY month")
     List<Map<String, Object>> sumByMonth(@Param("mid") Long mid);
+
+    @Query("SELECT FUNCTION('DAYOFWEEK', t.date) AS dow, SUM(t.amount) AS total " +
+            "FROM Transaction t " +
+            "WHERE t.member.id = :mid AND t.type = 'EXPENSE' AND t.date BETWEEN :start AND :end " +
+            "GROUP BY FUNCTION('DAYOFWEEK', t.date)")
+    List<Map<String, Object>> sumExpenseByWeekdayBetween(@Param("mid") Long mid,
+                                                         @Param("start") LocalDate start,
+                                                         @Param("end") LocalDate end);
+
 
     @Query("SELECT t FROM Transaction t ORDER BY t.id")
     List<Transaction> findBatch(Pageable pageable);

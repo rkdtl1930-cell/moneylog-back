@@ -20,6 +20,7 @@ public interface TransactionService {
     PageResponseDTO<TransactionDTO> getListByPeriod(PageRequestDTO pageRequestDTO, Long mid, LocalDate start, LocalDate end);
     List<Map<String, Object>> getCategoryStats(Long mid);
     List<Map<String, Object>> getMonthlyStats(Long mid);
+    TopWeekdayAvgExpenseDTO getTopWeekdayAvgExpense(Long mid, LocalDate start, LocalDate end);
     PageResponseDTO<TransactionDTO> getListBySingleDay(PageRequestDTO pageRequestDTO, Long mid, LocalDate date);
     void removeByPeriod(Long mid, LocalDate start, LocalDate end);
     void removeByAI(Long mid, LocalDate date, int amount, String memo, String type);
