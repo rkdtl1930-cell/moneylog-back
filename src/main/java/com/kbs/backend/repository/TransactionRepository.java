@@ -49,4 +49,34 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByMember_Id(Long mid);
     List<Transaction> findByMember_IdAndDateAndType(Long mid, LocalDate date, TransactionType type);
     List<Transaction> findByMember_IdAndType(Long mid, TransactionType type);
+    @Query("""
+        select coalesce(sum(t.amount), 0)
+        from Transaction t
+        where t.member.id = :mid
+          and t.type = :type
+          and t.date between :start and :end
+    """)
+    Long sumAmountByPeriod(
+            @Param("mid") Long mid,
+            @Param("type") TransactionType type,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
+    // TransactionRepository
+    @Query("""
+        select t.category as category, sum(t.amount) as totalAmount
+        from Transaction t
+        where t.member.id = :mid
+          and t.type = :type
+          and t.date between :start and :end
+        group by t.category
+        order by totalAmount desc
+    """)
+    List<Map<String, Object>> sumByCategoryAndPeriod(
+            @Param("mid") Long mid,
+            @Param("type") TransactionType type,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
+
 }
