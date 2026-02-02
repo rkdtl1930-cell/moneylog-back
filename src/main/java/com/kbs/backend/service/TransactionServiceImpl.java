@@ -7,7 +7,6 @@ import com.kbs.backend.domain.TransactionType;
 import com.kbs.backend.dto.*;
 import com.kbs.backend.exception.AmbiguousTransactionException;
 import com.kbs.backend.repository.BudgetRepository;
-import com.kbs.backend.repository.MemberRepository;
 import com.kbs.backend.repository.TransactionRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -598,6 +597,30 @@ public class TransactionServiceImpl implements TransactionService {
         }
         transactionRepository.save(tx);
         return entityToDto(tx);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransactionDTO> getTransactionsByPeriod(Long mid, LocalDate start, LocalDate end, String type, Integer limit) {
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("시작일과 종료일은 null일 수 없습니다.");
+        }
+        if (start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        if (limit == null || limit <= 0) limit = 10; // 기본 10건
+
+        TransactionType txType = TransactionType.valueOf(type.toUpperCase());
+
+        List<Transaction> list = transactionRepository.findByMember_IdAndTypeAndDateBetweenOrderByDateDescIdDesc(mid, txType, start, end);
+
+        return list.stream()
+                .limit(limit)
+                .map(this::entityToDto)
+                .toList();
     }
 
     @Transactional

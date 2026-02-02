@@ -38,6 +38,7 @@ public interface TransactionService {
     TransactionDTO getLatest(Long mid);
     TransactionDTO removeLatest(Long mid);
     TransactionDTO modifyLatest(Long mid, TransactionDTO newData);
+    List<TransactionDTO> getTransactionsByPeriod(Long mid, LocalDate start, LocalDate end, String type, Integer limit);
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
         Transaction transaction = Transaction.builder()

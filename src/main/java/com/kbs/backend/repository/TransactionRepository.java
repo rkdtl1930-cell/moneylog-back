@@ -80,4 +80,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("end") LocalDate end
     );
     Optional<Transaction> findTopByMember_IdOrderByIdDesc(Long mid);
+    List<Transaction> findByMember_IdAndTypeAndDateBetweenOrderByDateDescIdDesc(Long mid, TransactionType type, LocalDate start, LocalDate end);
 }

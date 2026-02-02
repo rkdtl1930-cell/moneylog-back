@@ -548,6 +548,32 @@ public class TransactionController {
         }
     }
 
+    @GetMapping("/period")
+    public ResponseEntity<List<TransactionDTO>> getListByPeriod(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam("type") String type,
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        // 인증 체크
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Long mid = user.getId();
+
+        try {
+            List<TransactionDTO> transactions =
+                    transactionService.getTransactionsByPeriod(mid, start, end, type, limit);
+            return ResponseEntity.ok(transactions);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Collections.emptyList());
+        }
+    }
+
+
 
     public static class DeleteByAIRequest {
         @Getter
