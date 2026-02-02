@@ -511,6 +511,42 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/latest")
+    public ResponseEntity<?> removeLatest(
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            TransactionDTO deleted =
+                    transactionService.removeLatest(user.getId());
+            return ResponseEntity.ok(deleted);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/latest")
+    public ResponseEntity<?> modifyLatest(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody TransactionDTO newData
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            TransactionDTO updated =
+                    transactionService.modifyLatest(user.getId(), newData);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
 
 
     public static class DeleteByAIRequest {

@@ -35,6 +35,9 @@ public interface TransactionService {
     BatchRegisterResultDTO registerBatch(List<TransactionDTO> dtos, Member member);
     Long getTotalAmount(Long mid, TransactionType type, LocalDate start, LocalDate end);
     Map<String, Object> getTopCategoryByPeriod(Long mid, LocalDate start, LocalDate end);
+    TransactionDTO getLatest(Long mid);
+    TransactionDTO removeLatest(Long mid);
+    TransactionDTO modifyLatest(Long mid, TransactionDTO newData);
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
         Transaction transaction = Transaction.builder()

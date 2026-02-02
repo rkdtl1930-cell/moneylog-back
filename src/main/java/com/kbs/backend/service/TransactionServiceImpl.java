@@ -556,6 +556,50 @@ public class TransactionServiceImpl implements TransactionService {
         return stats.get(0);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public TransactionDTO getLatest(Long mid) {
+        Transaction transaction = transactionRepository
+                .findTopByMember_IdOrderByIdDesc(mid)
+                .orElseThrow(()-> new IllegalArgumentException("최근 내역이 없습니다."));
+        return entityToDto(transaction);
+    }
+
+    @Override
+    @Transactional
+    public TransactionDTO removeLatest(Long mid) {
+        Transaction transaction = transactionRepository
+                .findTopByMember_IdOrderByIdDesc(mid)
+                .orElseThrow(()-> new IllegalArgumentException("삭제할 최근 내역이 없습니다."));
+        TransactionDTO dto = entityToDto(transaction);
+        transactionRepository.delete(transaction);
+        return dto;
+    }
+
+    @Override
+    @Transactional
+    public TransactionDTO modifyLatest(Long mid, TransactionDTO newData) {
+        boolean hasUpdate =
+                newData.getDate() != null || newData.getAmount() != null || (newData.getMemo() != null && !newData.getMemo().isBlank());
+        if(!hasUpdate){
+            throw new IllegalArgumentException("수정할 항목이 없습니다. 날짜/금액/메모 중 하나 이상이 필요합니다.");
+        }
+        Transaction tx = transactionRepository
+                .findTopByMember_IdOrderByIdDesc(mid)
+                .orElseThrow(() -> new IllegalArgumentException("수정할 최근 내역이 없습니다."));
+        if (newData.getDate() != null) {
+            tx.setDate(newData.getDate());
+        }
+        if (newData.getAmount() != null) {
+            tx.setAmount(newData.getAmount());
+        }
+        if (newData.getMemo() != null && !newData.getMemo().isBlank()) {
+            tx.setMemo(newData.getMemo());
+        }
+        transactionRepository.save(tx);
+        return entityToDto(tx);
+    }
+
     @Transactional
     public void migrateUsedAmountFromExistingTransactions(){
         List<Budget> allBudgets= budgetRepository.findAll();
