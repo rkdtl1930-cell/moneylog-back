@@ -456,6 +456,31 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Long getTotalAmount(Long mid, TransactionType type, LocalDate start, LocalDate end) {
+        if(start.isAfter(end)){
+            throw new IllegalArgumentException("시작일이 종료일보다 클 수 없습니다.");
+        }
+        return transactionRepository.sumAmountByPeriod(mid, type, start, end);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getTopCategoryByPeriod(Long mid, LocalDate start, LocalDate end) {
+        if(start.isAfter(end)){
+            throw new IllegalArgumentException("시작일이 종료일보다 클 수 없습니다.");
+        }
+        List<Map<String, Object>> stats = transactionRepository.sumByCategoryAndPeriod(mid, TransactionType.EXPENSE, start, end);
+        if(stats.isEmpty()){
+            return Map.of(
+                    "category","없음",
+                    "totalAmount","0"
+            );
+        }
+        return stats.get(0);
+    }
+
     @Transactional
     public void migrateUsedAmountFromExistingTransactions(){
         List<Budget> allBudgets= budgetRepository.findAll();

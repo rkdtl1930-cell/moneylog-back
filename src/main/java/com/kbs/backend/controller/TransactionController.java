@@ -337,6 +337,130 @@ public class TransactionController {
         }
     }
 
+    @GetMapping("/summary")
+    public ResponseEntity<Map<String, Object>> getSummary(@RequestParam("period")String period, @RequestParam("type")String type, @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate baseDate, @AuthenticationPrincipal UserPrincipal user){
+        if(user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        LocalDate resolvedBaseDate = (baseDate != null) ? baseDate : LocalDate.now();
+        TransactionType txType;
+        try{
+            txType = TransactionType.valueOf(type.toUpperCase());
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(Map.of("message", "타입은 반드시 EXPENSE거나 INCOME이어야 합니다."));
+        }
+        LocalDate start;
+        LocalDate end;
+        switch (period.toLowerCase()){
+            case "day" -> {
+                start = resolvedBaseDate;
+                end = resolvedBaseDate;
+            }
+            case "week" -> {
+                start = resolvedBaseDate.with(java.time.DayOfWeek.MONDAY);
+                end = resolvedBaseDate.with(java.time.DayOfWeek.SUNDAY);
+            }
+            case "month" -> {
+                start = resolvedBaseDate.withDayOfMonth(1);
+                end = resolvedBaseDate.withDayOfMonth(
+                        resolvedBaseDate.lengthOfMonth()
+                );
+            }
+            case "year" -> {
+                start = resolvedBaseDate.withDayOfYear(1);
+                end = resolvedBaseDate.withDayOfYear(
+                        resolvedBaseDate.lengthOfYear()
+                );
+            }
+            default -> {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "message",
+                                "기간은 반드시 day/week/month/year 중 하나여야 합니다."
+                        ));
+            }
+        }
+        if (start.isAfter(end)) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "잘못된 날짜 범위입니다."));
+        }
+        Long totalAmount = transactionService.getTotalAmount(user.getId(), txType, start, end);
+        Map<String,Object> response = new HashMap<>();
+        response.put("period", period);
+        response.put("totalAmount", totalAmount);
+        response.put("type",txType.name());
+        response.put("start", start);
+        response.put("end", end);
+        response.put("baseDate", resolvedBaseDate);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/top-expense-category")
+    public ResponseEntity<Map<String, Object>> getTopExpenseCategory(
+            @RequestParam("period") String period,
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate baseDate,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        if (user == null || user.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        LocalDate resolvedBaseDate =
+                (baseDate != null) ? baseDate : LocalDate.now();
+
+        LocalDate start;
+        LocalDate end;
+
+        switch (period.toLowerCase()) {
+            case "day" -> {
+                start = resolvedBaseDate;
+                end = resolvedBaseDate;
+            }
+            case "week" -> {
+                start = resolvedBaseDate.with(java.time.DayOfWeek.MONDAY);
+                end = resolvedBaseDate.with(java.time.DayOfWeek.SUNDAY);
+            }
+            case "month" -> {
+                start = resolvedBaseDate.withDayOfMonth(1);
+                end = resolvedBaseDate.withDayOfMonth(
+                        resolvedBaseDate.lengthOfMonth()
+                );
+            }
+            case "year" -> {
+                start = resolvedBaseDate.withDayOfYear(1);
+                end = resolvedBaseDate.withDayOfYear(
+                        resolvedBaseDate.lengthOfYear()
+                );
+            }
+            default -> {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "message",
+                                "period는 week 또는 month만 지원합니다."
+                        ));
+            }
+        }
+
+        Map<String, Object> result =
+                transactionService.getTopCategoryByPeriod(
+                        user.getId(),
+                        start,
+                        end
+                );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("period", period);
+        response.put("category", result.get("category"));
+        response.put("totalAmount", result.get("totalAmount"));
+        response.put("start", start);
+        response.put("end", end);
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
     public static class DeleteByAIRequest {
         @Getter

@@ -32,7 +32,8 @@ public interface TransactionService {
     void storeUpdateCandidates(Long mid, List<TransactionCandidateDTO> dtos);
     PageResponseDTO<TransactionDTO> getListByAI(PageRequestDTO pageRequestDTO, Long mid, String type);
     BatchRegisterResultDTO registerBatch(List<TransactionDTO> dtos, Member member);
-
+    Long getTotalAmount(Long mid, TransactionType type, LocalDate start, LocalDate end);
+    Map<String, Object> getTopCategoryByPeriod(Long mid, LocalDate start, LocalDate end);
 
     default Transaction dtoToEntity(TransactionDTO transactionDTO, Member member) {
         Transaction transaction = Transaction.builder()
